@@ -14,7 +14,61 @@ output:
 
 ### España Circo Este: A Journey through their Catalogue
 
+<iframe src="https://open.spotify.com/intl-it/artist/76pubHNMZnrWQ721Fy8SRq" width="100%" height="500" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+
 
 ***
 My Corpus aim is to analyze the catalougue of Italian band España Circo Este, a band that I actually work with as a stage-tech and light-engineer.
 I'll try to focus on the distinction between their first two studio albums with the latest two, since there was an important shifting between a heavier and raw sound to a much more pop-indie approach to the production, and how this changed the band performances and compositions.
+
+### A quick look around España Circo Este's discography
+
+```{r}
+library(ggplot2)
+library(plotly)
+library(tidyverse)
+library(spotifyr)
+
+# Ottenere i dati della playlist
+fulldiscography <- get_playlist_audio_features("YOUR_PLAYLIST_ID_HERE", "7mATWeN6t4nSbVrqdppdr4")
+
+# Creazione del grafico ggplot2
+gg <- ggplot(fulldiscography, aes(color = track.album.name, 
+                                   text = paste("Track Name:", track.name, "<br>",
+                                                "Release Date:", track.album.release_date),
+                                   x = valence, y = danceability, size = track.popularity)) +
+  geom_point(alpha = 0.4) +
+  labs(title = "A quick look around España Circo Este's discography") # Titolo del grafico
+
+
+# Trasformazione in un grafico interattivo con plotly
+gg <- ggplotly(gg)
+
+# Aggiunta di interattività per visualizzare un solo parametro alla volta del gruppo track.album.name
+gg <- htmlwidgets::onRender(gg, "
+  function(el, x) {
+    el.on('plotly_click', function(eventData) {
+      var albumName = eventData.points[0].data.customdata[0];
+      var traces = [];
+      for(var i = 0; i < x.data.length; i++) {
+        if(x.data[i].name == albumName) {
+          traces.push(x.data[i]);
+        }
+      }
+      Plotly.restyle(el.id, 'visible', 'legendonly', Array.from({length: x.data.length}, (_, i) => i));
+      Plotly.restyle(el.id, 'visible', true, traces[0].index);
+    });
+  }
+")
+
+# Impostare le dimensioni dell'immagine
+gg <- layout(gg, width = 800, height = 400)
+gg
+
+```
+
+***
+
+The graph is showing an overall look at España Circo Este's discography: in a column on the side we can see a list of all of the band's album, singles and Eps, by click on the name of the selected release, we can hide the related songs on the graph, so that it can be easier to make a comparison between two or three album of our choice. If we click on a dot we can see what song it represent and also the exact values of some of the song's features such as popularity, valence, release date etc...
+
+<iframe src="https://open.spotify.com/embed/playlist/7mATWeN6t4nSbVrqdppdr4" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
